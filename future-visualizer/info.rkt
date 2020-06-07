@@ -6,7 +6,8 @@
                "data-lib"
                "draw-lib"
                "pict-lib"
-               "gui-lib"))
+               "gui-lib"
+               "future-visualizer-pict"))
 (define build-deps '("scheme-lib"
                      "scribble-lib"
                      "racket-doc"
