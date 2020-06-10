@@ -13,6 +13,8 @@
                      "racket-doc"
                      "rackunit-lib"))
 
+(define implies '("future-visualizer-pict"))
+
 (define pkg-desc "Graphical performance tools for using futures")
 
 (define pkg-authors '(jamesswaine))
