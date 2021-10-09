@@ -10,3 +10,6 @@
 (define pkg-desc "Graphical performance tools for using futures")
 
 (define pkg-authors '(jamesswaine))
+
+(define license
+  '(Apache-2.0 OR MIT))
