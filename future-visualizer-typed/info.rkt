@@ -8,3 +8,6 @@
 (define pkg-desc "type declarations for \"future-visualizer\"")
 
 (define pkg-authors '(jamesswaine))
+
+(define license
+  '(Apache-2.0 OR MIT))
