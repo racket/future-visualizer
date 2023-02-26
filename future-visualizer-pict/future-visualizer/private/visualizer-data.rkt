@@ -45,7 +45,7 @@
 (define-struct future-event (future-id process-id what time prim-name user-data) 
   #:prefab)
 
-(define-struct gc-info (major? 
+(define-struct gc-info (mode
                         pre-used 
                         pre-admin 
                         code-page-total 
@@ -257,7 +257,10 @@
              (case (future-event-what v) 
                [(stop-trace) '()] 
                [else (cons v (timeline-events/private))])] 
-            [(gc-info? v) (cons v (timeline-events/private))] 
+            [(and (gc-info? v)
+                  ;; don't keep `GC:major`
+                  (eq? 'GC (vector-ref info 3)))
+             (cons v (timeline-events/private))] 
             [else (timeline-events/private)])) 
         (timeline-events/private))))
           
@@ -413,8 +416,8 @@
                                                  (gc-info-end-real-time gc) 
                                                  'gc
                                                  'gc
-                                                 #f 
-                                                 (if (gc-info-major? gc) 'major 'minor)
+                                                 #f
+                                                 (gc-info-mode gc)
                                                  'gc 
                                                  #f 
                                                  (event-pos-description i ngcs) 

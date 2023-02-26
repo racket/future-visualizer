@@ -2,7 +2,9 @@
 (provide DEF-WINDOW-WIDTH
          DEF-WINDOW-HEIGHT
          RT-THREAD-ID
+         MIN-VAR-SEG-WIDTH
          MIN-SEG-WIDTH
+         MIN-SEG-HEIGHT
          STROKE-WIDTH
          MIN-SEG-INNER-WIDTH
          DEFAULT-TIME-INTERVAL
@@ -25,7 +27,9 @@
 (define DEF-WINDOW-WIDTH 1500)
 (define DEF-WINDOW-HEIGHT 1000)
 (define RT-THREAD-ID 0)
+(define MIN-VAR-SEG-WIDTH 2)
 (define MIN-SEG-WIDTH 10)
+(define MIN-SEG-HEIGHT 10)
 (define STROKE-WIDTH 2)
 (define MIN-SEG-INNER-WIDTH (- MIN-SEG-WIDTH STROKE-WIDTH))
 ;Default time interval (in MS) between ticks on the timeline

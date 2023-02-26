@@ -296,7 +296,7 @@
 ;;Set pixel widths of segments with variable widths, e.g.
 ;;work and GC events
 ;;adjust-variable-width-segs! : (listof segment) uint -> void
-(define (adjust-variable-width-segs! segs max-x)
+(define (adjust-variable-width-segs! segs max-x tr)
   (cond
     [(empty? segs) void]
     [else
@@ -310,17 +310,17 @@
         (define x-end (if next-seg
                           (segment-x next-seg)
                           max-x))
-        (set-segment-width! cur (max MIN-SEG-WIDTH
-                                     (- x-end (segment-x cur))))
-        (adjust-variable-width-segs! (cdr segs) max-x)]
+        (set-segment-width! cur (max MIN-VAR-SEG-WIDTH (- x-end (segment-x cur))))
+        (adjust-variable-width-segs! (cdr segs) max-x tr)]
        [(gc)
-        (cond
-          [(empty? (cdr segs)) void]
-          [else
-           (set-segment-width! cur (max MIN-SEG-WIDTH
-                                        (- (segment-x (car (cdr segs))) (segment-x cur))))
-           (adjust-variable-width-segs! (cdr segs) max-x)])]
-       [else (adjust-variable-width-segs! (cdr segs) max-x)])]))
+        (define evt (segment-event cur))
+        (set-segment-width! cur (max MIN-VAR-SEG-WIDTH
+                                     (* DEFAULT-TIMELINE-WIDTH
+                                        (inexact->exact
+                                         (/ (- (event-end-time evt) (event-start-time evt))
+                                            (- (trace-end-time tr) (trace-start-time tr)))))))
+        (adjust-variable-width-segs! (cdr segs) max-x tr)]
+       [else (adjust-variable-width-segs! (cdr segs) max-x tr)])]))
 
 ;;connect-segments! : (listof segment) -> void
 (define (connect-segments! segs)
@@ -357,10 +357,12 @@
             (values wanted-offset delta)
             (values last-right-edge (+ delta (- last-right-edge wanted-offset)))))
       (define radius (if is-gc-evt? 0 (/ MIN-SEG-WIDTH 2)))
-      (define segw MIN-SEG-WIDTH)
+      (define segw (cond
+                     [is-gc-evt? MIN-VAR-SEG-WIDTH]
+                     [else MIN-SEG-WIDTH]))
       (define segh (cond
                      [is-gc-evt? max-y]
-                     [else MIN-SEG-WIDTH]))
+                     [else MIN-SEG-HEIGHT]))
       (define seg (segment evt
                            (round offset)
                            (- (calc-row-mid-y (event-proc-index evt) TIMELINE-ROW-HEIGHT tr) radius)
@@ -393,7 +395,7 @@
   (define max-x (+ MIN-SEG-WIDTH (round x)))
   (define ordered-segs (reverse segments))
   (connect-segments! ordered-segs)
-  (adjust-variable-width-segs! ordered-segs max-x)
+  (adjust-variable-width-segs! ordered-segs max-x tr)
   (define ticks (calc-ticks ordered-segs timeToPixModifier tr))
   (values (frame-info max-x
                       max-y

@@ -20,22 +20,30 @@
 
 ;;circle-pict : string string uint [uint] -> pict
 (define (circle-pict color stroke-color width #:stroke-width [stroke-width 1])
-    (pin-over (colorize (filled-ellipse width width)
-                        stroke-color)
-              (* stroke-width 2)
-              (* stroke-width 2)
-              (colorize (filled-ellipse (- width (* stroke-width 4))
-                                        (- width (* stroke-width 4)))
-                        color)))
+  (define dx (min stroke-width (* 2 width)))
+  (pin-over (colorize (filled-ellipse width width)
+                      (if (dx . < . 1)
+                          color
+                          stroke-color))
+            dx
+            dx
+            (colorize (filled-ellipse (- width (* dx 2))
+                                      (- width (* dx 2)))
+                      color)))
 
 ;;rect-pict : string string uint uint [uint] -> pict
 (define (rect-pict color stroke-color width height #:stroke-width [stroke-width 1])
+  (define dx (min (* 2 stroke-width) (/ width 2)))
+  (define dy (min (* 2 stroke-width) (/ height 2)))
   (pin-over (colorize (filled-rectangle width height)
-                      stroke-color)
-            (* stroke-width 2)
-            (* stroke-width 2)
-            (colorize (filled-rectangle (- width (* stroke-width 4))
-                                        (- height (* stroke-width 4)))
+                      (if (or (dx . <= . (/ width 2))
+                              (dy . <= . (/ height 2)))
+                          color
+                          stroke-color))
+            dx
+            dy
+            (colorize (filled-rectangle (- width (* dx 2))
+                                        (- height (* dy 2)))
                       color)))
 
 ;;text-pict : string [string] -> pict
