@@ -296,7 +296,7 @@
 ;;Set pixel widths of segments with variable widths, e.g.
 ;;work and GC events
 ;;adjust-variable-width-segs! : (listof segment) uint -> void
-(define (adjust-variable-width-segs! segs max-x tr)
+(define (adjust-variable-width-segs! segs max-x tr timeline-width)
   (cond
     [(empty? segs) void]
     [else
@@ -311,16 +311,16 @@
                           (segment-x next-seg)
                           max-x))
         (set-segment-width! cur (max MIN-VAR-SEG-WIDTH (- x-end (segment-x cur))))
-        (adjust-variable-width-segs! (cdr segs) max-x tr)]
+        (adjust-variable-width-segs! (cdr segs) max-x tr timeline-width)]
        [(gc)
         (define evt (segment-event cur))
         (set-segment-width! cur (max MIN-VAR-SEG-WIDTH
-                                     (* DEFAULT-TIMELINE-WIDTH
+                                     (* timeline-width
                                         (inexact->exact
                                          (/ (- (event-end-time evt) (event-start-time evt))
                                             (- (trace-end-time tr) (trace-start-time tr)))))))
-        (adjust-variable-width-segs! (cdr segs) max-x tr)]
-       [else (adjust-variable-width-segs! (cdr segs) max-x tr)])]))
+        (adjust-variable-width-segs! (cdr segs) max-x tr timeline-width)]
+       [else (adjust-variable-width-segs! (cdr segs) max-x tr timeline-width)])]))
 
 ;;connect-segments! : (listof segment) -> void
 (define (connect-segments! segs)
@@ -337,7 +337,7 @@
     (set-segment-next-targ-future-seg! s (segment-of-evt event-next-targ-future-event))))
 
 ;;build-seg-layout : flonum (listof event) trace -> (values (listof segment) uint uint)
-(define (build-seg-layout timeToPixModifier events tr max-y)
+(define (build-seg-layout timeToPixModifier events tr max-y timeline-width)
   (define num-tls (length (trace-proc-timelines tr)))
   (define last-right-edges (build-vector num-tls (λ (n) 0)))
   (define-values (sgs d x-extent)
@@ -348,7 +348,7 @@
       (define last-right-edge (if is-gc-evt?
                                   largest-x
                                   (vector-ref last-right-edges (event-proc-index evt))))
-      (define wanted-offset (+ delta (* DEFAULT-TIMELINE-WIDTH
+      (define wanted-offset (+ delta (* timeline-width
                                         (inexact->exact
                                          (/ (- (event-start-time evt) (trace-start-time tr))
                                             (- (trace-end-time tr) (trace-start-time tr)))))))
@@ -386,16 +386,16 @@
   (values sgs x-extent))
 
 ;;calc-segments : trace uint uint -> (values frame-info (listof segment))
-(define (calc-segments tr)
+(define (calc-segments tr [timeline-width DEFAULT-TIMELINE-WIDTH])
   (define evts (trace-all-events tr))
-  (define timeToPixModifier (/ DEFAULT-TIMELINE-WIDTH (- (trace-end-time tr) (trace-start-time tr))))
+  (define timeToPixModifier (/ timeline-width (- (trace-end-time tr) (trace-start-time tr))))
   (define max-y (* TIMELINE-ROW-HEIGHT (length (trace-proc-timelines tr))))
   (define-values (segments x)
-    (build-seg-layout timeToPixModifier evts tr max-y))
+    (build-seg-layout timeToPixModifier evts tr max-y timeline-width))
   (define max-x (+ MIN-SEG-WIDTH (round x)))
   (define ordered-segs (reverse segments))
   (connect-segments! ordered-segs)
-  (adjust-variable-width-segs! ordered-segs max-x tr)
+  (adjust-variable-width-segs! ordered-segs max-x tr timeline-width)
   (define ticks (calc-ticks ordered-segs timeToPixModifier tr))
   (values (frame-info max-x
                       max-y
@@ -531,9 +531,10 @@
                        #:y [y #f]
                        #:width [width #f]
                        #:height [height #f]
-                       #:selected-event-index [selected-event-index #f])
+                       #:selected-event-index [selected-event-index #f]
+                       #:timeline-width [timeline-width DEFAULT-TIMELINE-WIDTH])
   (define tr (build-trace logs))
-  (define-values (finfo segments) (calc-segments tr))
+  (define-values (finfo segments) (calc-segments tr timeline-width))
   (define vregion (if x
                       (viewable-region x y width height)
                       (viewable-region 0 0 (frame-info-adjusted-width finfo) (frame-info-adjusted-height finfo))))

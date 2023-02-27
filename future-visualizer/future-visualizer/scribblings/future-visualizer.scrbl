@@ -103,17 +103,21 @@ though the time interval is fixed, the pixel distance between lines varies
 based on the event density for any given time range to prevent overlapping 
 event circles.  
 
-@defproc[(timeline-pict [events (listof indexed-future-event?)] 
+@defproc[(timeline-pict [events (listof indexed-future-event?)]
+                        [#:timeline-width timeline-width exact-nonnegative-integer? 1000]
                         [#:x x (or #f exact-nonnegative-integer?) #f] 
                         [#:y y (or #f exact-nonnegative-integer?) #f] 
                         [#:width width (or #f exact-nonnegative-integer?) #f] 
                         [#:height height (or #f exact-nonnegative-integer?) #f] 
                         [#:selected-event-index selected-event-index (or #f exact-nonnegative-integer?) #f]) pict?]{
-  Returns a @racket[pict] showing the execution timeline for the trace in @racket[events].  The optional 
+  Returns a @racket[pict] showing the execution timeline for the trace in @racket[events]. The
+  optional @racket[timeline-width] provides a minimum width of the timeline. The optional 
   arguments @racket[x], @racket[y], @racket[width], and @racket[height] can be used to obtain a specific 
   area (in pixels) of the timeline image.  The @racket[selected-event-index] argument, if specified, shows 
   the timeline image as if the user placed the mouse pointer over the @racket[indexed-future-event] with 
   the corresponding index.
+
+@history[#:changed "1.1" @elem{Added the @racket[#:timeline-width] argument.}]
 }                                                                                                      
 
 @section[#:tag "future-visualizer-tree"]{Future Creation Tree} 
