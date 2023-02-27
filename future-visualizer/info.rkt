@@ -19,7 +19,7 @@
 
 (define pkg-authors '(jamesswaine))
 
-(define version '("1.1"))
+(define version "1.1")
 
 (define license
   '(Apache-2.0 OR MIT))
